@@ -1,39 +1,36 @@
-# This is a basic workflow that is manually triggered
-
-name: Release
-
-on:
-  workflow_dispatch:
-  release:
-    types: [ published ]
 jobs:
   release:
     name: Release on Sonatype OSS
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-          check-latest: false
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          server-id: ossrh
-          java-version: '11'
-          distribution: 'adopt'
-          server-username: OSSRH_USERNAME
-          server-password: OSSRH_PASSWORD
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE
-
-      - name: Publish to Apache Maven Central
-        run: mvn clean deploy -Prelease -DskipTests
-        env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+    - continue-on-error: true
+      uses: actions/checkout@v3
+    - continue-on-error: true
+      name: Setup JDK 11
+      uses: actions/setup-java@v3
+      with:
+        check-latest: false
+        distribution: adopt
+        java-version: '11'
+    - continue-on-error: true
+      name: Set up Apache Maven Central
+      uses: actions/setup-java@v3
+      with:
+        distribution: adopt
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        java-version: '11'
+        server-id: ossrh
+        server-password: OSSRH_PASSWORD
+        server-username: OSSRH_USERNAME
+    - continue-on-error: true
+      env:
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      name: Publish to Apache Maven Central
+      run: mvn clean deploy -Prelease -DskipTests
+name: Release
+on:
+  repository_dispatch:
+    types: trigger-ga___release.yml
